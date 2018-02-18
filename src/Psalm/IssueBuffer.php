@@ -221,17 +221,6 @@ class IssueBuffer
     }
 
     /**
-     * @return array
-     */
-    public static function clear()
-    {
-        $current_data = self::$issues_data;
-        self::$issues_data = [];
-        self::$emitted = [];
-        return $current_data;
-    }
-
-    /**
      * @param  ProjectChecker       $project_checker
      * @param  bool                 $is_full
      * @param  float                $start_time
@@ -380,6 +369,18 @@ class IssueBuffer
         self::$recording_level = 0;
         self::$recorded_issues = [];
         self::$console_issues = [];
+    }
+
+    /**
+     * @return array<int, array{severity: string, line_from: int, type: string, message: string, file_name: string,
+     *  file_path: string, snippet: string, from: int, to: int, snippet_from: int, snippet_to: int, column: int}>
+     */
+    public static function clear()
+    {
+        $current_data = self::$issues_data;
+        self::$issues_data = [];
+        self::$emitted = [];
+        return $current_data;
     }
 
     /**
