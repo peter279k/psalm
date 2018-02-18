@@ -73,7 +73,11 @@ class FileChecker extends SourceChecker implements StatementsSource
     public $project_checker;
 
     /**
-     * @param ProjectChecker  $project_checker
+     * @var array<int, PhpParser\Node\Stmt>|null
+     */
+    public $stmts;
+
+    /**
      * @param string  $file_path
      * @param string  $file_name
      */
@@ -86,10 +90,11 @@ class FileChecker extends SourceChecker implements StatementsSource
 
     /**
      * @param  bool $preserve_checkers
+     * @param  bool $preserve_statements
      *
      * @return void
      */
-    public function analyze(Context $file_context = null, $preserve_checkers = false)
+    public function analyze(Context $file_context = null, $preserve_checkers = false, $preserve_statements = false)
     {
         if ($file_context) {
             $this->context = $file_context;
@@ -149,6 +154,7 @@ class FileChecker extends SourceChecker implements StatementsSource
         }
 
         // check any leftover classes not already evaluated
+
         foreach ($this->class_checkers_to_analyze as $class_checker) {
             $class_checker->analyze(null, $this->context);
         }
@@ -186,6 +192,22 @@ class FileChecker extends SourceChecker implements StatementsSource
             $this->class_checkers_to_analyze = [];
             $this->function_checkers = [];
         }
+
+        if ($preserve_statements) {
+            $this->stmts = $stmts;
+        }
+    }
+
+    /**
+     * @return array<int, \PhpParser\Node\Stmt>
+     */
+    public function getStatements()
+    {
+        if ($this->stmts === null) {
+            throw new \UnexpectedValueException('Statements should not be null here');
+        }
+
+        return $this->stmts;
     }
 
     /**

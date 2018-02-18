@@ -2,6 +2,8 @@
 namespace Psalm\Provider;
 
 use PhpParser;
+use Psalm\Checker\ProjectChecker;
+use Psalm\LanguageServer\NodeVisitor\{ColumnCalculator, ReferencesAdder};
 
 class StatementsProvider
 {
@@ -29,14 +31,15 @@ class StatementsProvider
     /**
      * @param  string  $file_path
      * @param  bool    $debug_output
+     * @param  bool    $server_mode
      *
      * @return array<int, \PhpParser\Node\Stmt>
      */
-    public function getStatementsForFile($file_path, $debug_output = false)
+    public function getStatementsForFile($file_path, $debug_output = false, $server_mode = false)
     {
         $from_cache = false;
 
-        $version = 'parsercache5';
+        $version = 'parsercache5' . ($server_mode ? 'server' : '');
 
         $file_contents = $this->file_provider->getContents($file_path);
         $modified_time = $this->file_provider->getModifiedTime($file_path);
@@ -55,7 +58,7 @@ class StatementsProvider
                 echo 'Parsing ' . $file_path . PHP_EOL;
             }
 
-            $stmts = self::parseStatementsInFile($file_contents);
+            $stmts = self::parseStatementsInFile($file_contents, $server_mode);
         } else {
             $from_cache = true;
         }
@@ -70,24 +73,25 @@ class StatementsProvider
     }
 
     /**
-     * @param  string   $file_contents
+     * @param  string  $file_contents
+     * @param  bool    $server_mode
      *
      * @return array<int, \PhpParser\Node\Stmt>
      */
-    private static function parseStatementsInFile($file_contents)
+    private static function parseStatementsInFile($file_contents, $server_mode)
     {
         if (!self::$parser) {
+            $attributes = [
+                'comments', 'startLine', 'startFilePos', 'endFilePos',
+            ];
+
+            if ($server_mode) {
+                $attributes[] = 'endLine';
+            }
+
             $lexer = version_compare(PHP_VERSION, '7.0.0dev', '>=')
-                ? new PhpParser\Lexer([
-                    'usedAttributes' => [
-                        'comments', 'startLine', 'startFilePos', 'endFilePos',
-                    ],
-                ])
-                : new PhpParser\Lexer\Emulative([
-                    'usedAttributes' => [
-                        'comments', 'startLine', 'startFilePos', 'endFilePos',
-                    ],
-                ]);
+                ? new PhpParser\Lexer([ 'usedAttributes' => $attributes ])
+                : new PhpParser\Lexer\Emulative([ 'usedAttributes' => $attributes ]);
 
             self::$parser = (new PhpParser\ParserFactory())->create(PhpParser\ParserFactory::PREFER_PHP7, $lexer);
         }
@@ -103,6 +107,30 @@ class StatementsProvider
             }
         }
 
+        if ($server_mode) {
+            $traverser = new PhpParser\NodeTraverser;
+
+            // Add column attributes to nodes
+            $traverser->addVisitor(new ColumnCalculator($file_contents));
+
+            $traverser->traverse($stmts);
+        }
+
         return $stmts;
+    }
+
+    /**
+     * Returns the node at a specified position
+     * @param array<PhpParser\Node> $stmts
+     * @param \Psalm\LanguageServer\Protocol\Position $position
+     * @return PhpParser\Node|null
+     */
+    public static function getNodeAtPosition(array $stmts, \Psalm\LanguageServer\Protocol\Position $position)
+    {
+        $traverser = new PhpParser\NodeTraverser;
+        $finder = new \Psalm\LanguageServer\NodeVisitor\NodeAtPositionFinder($position);
+        $traverser->addVisitor($finder);
+        $traverser->traverse($stmts);
+        return $finder->node;
     }
 }
