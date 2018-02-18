@@ -317,7 +317,7 @@ foreach ($plugins as $plugin_path) {
 $start_time = (float) microtime(true);
 
 if (array_key_exists('server', $options)) {
-    $project_checker->server($current_dir);
+    $project_checker->server($current_dir, null);
 } elseif (array_key_exists('self-check', $options)) {
     $project_checker->checkDir(__DIR__);
 } elseif ($paths_to_check === null) {
