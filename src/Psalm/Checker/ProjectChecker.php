@@ -237,6 +237,7 @@ class ProjectChecker
      */
     public function server($base_dir, $address = '127.0.0.1:12345', $server_mode = true)
     {
+        FileReferenceProvider::loadReferenceCache();
         $this->codebase->enterServerMode();
 
         $cwd = getcwd();

@@ -76,11 +76,11 @@ class TextDocument
      */
     public function didOpen(TextDocumentItem $textDocument)
     {
-        //$this->server->analyzeURI($textDocument->uri);
     }
 
     public function didSave(TextDocumentItem $textDocument)
     {
+        $this->server->invalidateFileAndDependents($textDocument->uri);
         $this->server->analyzeURI($textDocument->uri);
     }
 

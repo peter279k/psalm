@@ -149,36 +149,77 @@ class Codebase
 
         $this->reflection = new Codebase\Reflection($classlike_storage_provider, $this);
 
+        $this->loadCodebaseProperties();
+    }
+
+    /**
+     * @return void
+     */
+    private function loadCodebaseProperties()
+    {
         $this->scanner = new Codebase\Scanner(
             $this,
-            $config,
-            $file_storage_provider,
-            $file_provider,
+            $this->config,
+            $this->file_storage_provider,
+            $this->file_provider,
             $this->reflection,
-            $debug_output
+            $this->debug_output
         );
 
-        $this->analyzer = new Codebase\Analyzer($config, $file_provider, $debug_output);
+        $this->analyzer = new Codebase\Analyzer($this->config, $this->file_provider, $this->debug_output);
 
-        $this->functions = new Codebase\Functions($file_storage_provider, $this->reflection);
-        $this->methods = new Codebase\Methods($classlike_storage_provider);
-        $this->properties = new Codebase\Properties($classlike_storage_provider);
+        $this->functions = new Codebase\Functions($this->file_storage_provider, $this->reflection);
+        $this->methods = new Codebase\Methods($this->classlike_storage_provider);
+        $this->properties = new Codebase\Properties($this->classlike_storage_provider);
         $this->classlikes = new Codebase\ClassLikes(
-            $config,
+            $this->config,
             $this,
-            $classlike_storage_provider,
+            $this->classlike_storage_provider,
             $this->scanner,
             $this->methods,
-            $debug_output
+            $this->debug_output
         );
         $this->populator = new Codebase\Populator(
-            $config,
-            $classlike_storage_provider,
-            $file_storage_provider,
+            $this->config,
+            $this->classlike_storage_provider,
+            $this->file_storage_provider,
             $this->classlikes,
             $this->methods,
-            $debug_output
+            $this->debug_output
         );
+    }
+
+    /**
+     * @return void
+     */
+    public function reloadFiles(array $diff_files)
+    {
+        if (!$this->server_mode) {
+            throw new \LogicException('Why are we reloading if not in server mode?');
+        }
+
+        \Psalm\Provider\FileReferenceProvider::loadReferenceCache();
+
+        $referenced_files = \Psalm\Checker\ProjectChecker::getReferencedFilesFromDiff($diff_files);
+
+        $this->loadCodebaseProperties();
+
+        /*$this->scanner->addFilesToDeepScan($referenced_files);
+        $this->scanner->scanFiles($this->classlikes);
+
+        foreach ($diff_files as $referenced_file_path) {
+            $file_storage = $this->file_storage_provider->get($referenced_file_path);
+
+            foreach ($file_storage->required_classes as $fq_classlike_name) {
+                $this->scanner->queueClassLikeForScanning($fq_classlike_name, $referenced_file_path);
+            }
+        }
+
+        $this->scanner->scanFiles($this->classlikes);
+
+        \Psalm\Provider\FileReferenceProvider::updateReferenceCache($this, $referenced_files);
+
+        $this->populator->populateCodebase();*/
     }
 
     /**

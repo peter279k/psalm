@@ -244,18 +244,24 @@ class LanguageServer extends AdvancedJsonRpc\Dispatcher
 
     }
 
+    public function invalidateFileAndDependents(string $uri)
+    {
+        $file_path = \LanguageServer\uriToPath($uri);
+        $this->project_checker->codebase->reloadFiles([$file_path]);
+    }
+
     public function analyzeURI(string $uri)
     {
-        $path_to_analyze = \LanguageServer\uriToPath($uri);
-        $relative_path_to_analyze = $this->config->shortenFileName($path_to_analyze);
+        $file_path = \LanguageServer\uriToPath($uri);
+        $relative_path_to_analyze = $this->config->shortenFileName($file_path);
 
-        $file_checker = $this->project_checker->codebase->analyzer->getFileChecker(
-            $this->project_checker,
-            $path_to_analyze,
-            $this->filetype_checkers
-        );
+        $codebase = $this->project_checker->codebase;
 
-        $file_checker->analyze(null, false, true);
+        $codebase->addFilesToAnalyze([$file_path => $file_path]);
+
+        $codebase->scanFiles();
+
+        $codebase->analyzer->analyzeFiles($this->project_checker, 1, false);
 
         $data = \Psalm\IssueBuffer::clear();
 

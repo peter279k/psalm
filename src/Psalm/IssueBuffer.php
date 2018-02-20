@@ -235,7 +235,7 @@ class IssueBuffer
         $add_stats = false
     ) {
         $scanned_files = $project_checker->codebase->scanner->getScannedFiles();
-        Provider\FileReferenceProvider::updateReferenceCache($project_checker, $scanned_files);
+        Provider\FileReferenceProvider::updateReferenceCache($project_checker->codebase, $scanned_files);
 
         $has_error = false;
 

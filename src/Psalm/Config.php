@@ -637,10 +637,8 @@ class Config
      *
      * @return string
      */
-    private function getPluginClassForPath(ProjectChecker $project_checker, $path, $must_extend)
+    private function getPluginClassForPath(Codebase $codebase, $path, $must_extend)
     {
-        $codebase = $project_checker->codebase;
-
         $file_storage = $codebase->createFileStorageForPath($path);
         $file_to_scan = new FileScanner($path, $this->shortenFileName($path), false);
         $file_to_scan->scan(
@@ -648,7 +646,7 @@ class Config
             $file_storage
         );
 
-        $declared_classes = ClassLikeChecker::getClassesForFile($project_checker, $path);
+        $declared_classes = ClassLikeChecker::getClassesForFile($codebase, $path);
 
         if (count($declared_classes) !== 1) {
             throw new \InvalidArgumentException(
