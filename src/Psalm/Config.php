@@ -586,7 +586,7 @@ class Config
         $codebase = $project_checker->codebase;
 
         foreach ($this->filetype_scanner_paths as $extension => $path) {
-            $fq_class_name = $this->getPluginClassForPath($project_checker, $path, 'Psalm\\Scanner\\FileScanner');
+            $fq_class_name = $this->getPluginClassForPath($codebase, $path, 'Psalm\\Scanner\\FileScanner');
 
             $this->filetype_scanners[$extension] = $fq_class_name;
 
@@ -595,7 +595,7 @@ class Config
         }
 
         foreach ($this->filetype_checker_paths as $extension => $path) {
-            $fq_class_name = $this->getPluginClassForPath($project_checker, $path, 'Psalm\\Checker\\FileChecker');
+            $fq_class_name = $this->getPluginClassForPath($codebase, $path, 'Psalm\\Checker\\FileChecker');
 
             $this->filetype_checkers[$extension] = $fq_class_name;
 
@@ -604,7 +604,7 @@ class Config
         }
 
         foreach ($this->plugin_paths as $path) {
-            $fq_class_name = $this->getPluginClassForPath($project_checker, $path, 'Psalm\\Plugin');
+            $fq_class_name = $this->getPluginClassForPath($codebase, $path, 'Psalm\\Plugin');
 
             /** @psalm-suppress UnresolvableInclude */
             require_once($path);
