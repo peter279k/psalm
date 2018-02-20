@@ -202,6 +202,9 @@ class Codebase
 
         $referenced_files = \Psalm\Checker\ProjectChecker::getReferencedFilesFromDiff($diff_files);
 
+        FileStorageProvider::deleteAll();
+        ClassLikeStorageProvider::deleteAll();
+
         $this->loadCodebaseProperties();
 
         /*$this->scanner->addFilesToDeepScan($referenced_files);

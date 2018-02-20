@@ -280,7 +280,7 @@ class LanguageServer extends AdvancedJsonRpc\Dispatcher
                 $range = new Range(new Position($start_line - 1, $start_column - 1), new Position($end_line - 1, $end_column - 1));
                 switch ($severity) {
                     case \Psalm\Config::REPORT_INFO:
-                        $diagnostic_severity = DiagnosticSeverity::INFORMATION;
+                        $diagnostic_severity = DiagnosticSeverity::WARNING;
                         break;
                     case \Psalm\Config::REPORT_ERROR:
                     default:
