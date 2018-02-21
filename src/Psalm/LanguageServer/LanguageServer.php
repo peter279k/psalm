@@ -259,19 +259,26 @@ class LanguageServer extends AdvancedJsonRpc\Dispatcher
 
         $codebase->addFilesToAnalyze([$file_path => $file_path]);
 
-        $codebase->scanFiles();
-
         $codebase->analyzer->analyzeFiles($this->project_checker, 1, false);
 
         $data = \Psalm\IssueBuffer::clear();
 
+        $data = array_values(array_filter(
+            $data,
+            function (array $issue_data) use ($file_path) : bool {
+                return $issue_data['file_path'] === $file_path;
+            }
+        ));
+
         $diagnostics = array_map(
-            function (array $issue_data) : Diagnostic {
+            function (array $issue_data) use ($file_path) : Diagnostic {
+                $issue_file_path = $issue_data['file_path'];
+
                 //$check_name = $issue['check_name'];
-                $description = $issue_data['message'];
+                $description = htmlentities($issue_data['message']);
                 $severity = $issue_data['severity'];
-                $path = $issue_data['file_path'];
-                $issue_uri = \LanguageServer\pathToUri($path);
+
+                $issue_uri = \LanguageServer\pathToUri($issue_file_path);
                 $start_line = max($issue_data['line_from'], 1);
                 $end_line = $issue_data['line_to'];
                 $start_column = $issue_data['column_from'];

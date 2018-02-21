@@ -682,7 +682,7 @@ class ProjectChecker
     /**
      * @param  array<string>  $diff_files
      *
-     * @return array<string>
+     * @return array<string, string>
      */
     public static function getReferencedFilesFromDiff(array $diff_files)
     {
@@ -705,7 +705,7 @@ class ProjectChecker
             $all_files_to_check = array_merge($dependent_files, $all_files_to_check);
         }
 
-        return array_unique($all_files_to_check);
+        return array_combine($all_files_to_check, $all_files_to_check);
     }
 
     /**

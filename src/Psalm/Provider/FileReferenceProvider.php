@@ -227,7 +227,7 @@ class FileReferenceProvider
     }
 
     /**
-     * @param  array<string, bool>  $visited_files
+     * @param  array<string, mixed>  $visited_files
      *
      * @return void
      */
