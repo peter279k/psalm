@@ -149,14 +149,6 @@ class Codebase
 
         $this->reflection = new Codebase\Reflection($classlike_storage_provider, $this);
 
-        $this->loadCodebaseProperties();
-    }
-
-    /**
-     * @return void
-     */
-    private function loadCodebaseProperties()
-    {
         $this->scanner = new Codebase\Scanner(
             $this,
             $this->config,
@@ -165,8 +157,6 @@ class Codebase
             $this->reflection,
             $this->debug_output
         );
-
-        $this->analyzer = new Codebase\Analyzer($this->config, $this->file_provider, $this->debug_output);
 
         $this->functions = new Codebase\Functions($this->file_storage_provider, $this->reflection);
         $this->methods = new Codebase\Methods($this->classlike_storage_provider);
@@ -187,6 +177,16 @@ class Codebase
             $this->methods,
             $this->debug_output
         );
+
+        $this->loadAnalyzer();
+    }
+
+    /**
+     * @return void
+     */
+    private function loadAnalyzer()
+    {
+        $this->analyzer = new Codebase\Analyzer($this->config, $this->file_provider, $this->debug_output);
     }
 
     /**
@@ -200,9 +200,11 @@ class Codebase
             throw new \LogicException('Why are we reloading if not in server mode?');
         }
 
+        $this->loadAnalyzer();
+
         \Psalm\Provider\FileReferenceProvider::loadReferenceCache();
 
-        $referenced_files = \Psalm\Checker\ProjectChecker::getReferencedFilesFromDiff($diff_files);
+        $referenced_files = \Psalm\Checker\ProjectChecker::getReferencedFilesFromDiff($diff_files, false);
 
         foreach ($diff_files as $diff_file_path) {
             try {

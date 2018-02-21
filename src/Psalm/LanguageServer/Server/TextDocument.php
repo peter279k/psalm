@@ -76,6 +76,7 @@ class TextDocument
      */
     public function didOpen(TextDocumentItem $textDocument)
     {
+
     }
 
     public function didSave(TextDocumentItem $textDocument)

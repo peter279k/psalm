@@ -684,7 +684,7 @@ class ProjectChecker
      *
      * @return array<string, string>
      */
-    public static function getReferencedFilesFromDiff(array $diff_files)
+    public static function getReferencedFilesFromDiff(array $diff_files, $include_referencing_files = true)
     {
         $all_inherited_files_to_check = $diff_files;
 
@@ -700,9 +700,11 @@ class ProjectChecker
 
         $all_files_to_check = $all_inherited_files_to_check;
 
-        foreach ($all_inherited_files_to_check as $file_name) {
-            $dependent_files = FileReferenceProvider::getFilesReferencingFile($file_name);
-            $all_files_to_check = array_merge($dependent_files, $all_files_to_check);
+        if ($include_referencing_files) {
+            foreach ($all_inherited_files_to_check as $file_name) {
+                $dependent_files = FileReferenceProvider::getFilesReferencingFile($file_name);
+                $all_files_to_check = array_merge($dependent_files, $all_files_to_check);
+            }
         }
 
         return array_combine($all_files_to_check, $all_files_to_check);
